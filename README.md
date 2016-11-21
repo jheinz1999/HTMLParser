@@ -6,7 +6,7 @@ Installation:
 
 There is no platform-dependent code in this project. It will compile on any system that can run g++. It has been tested with g++ 4.9.3 under linux, as well as g++ 6.1.0 using MinGW on Windows 7. To compile, type
 
-'make'
+`make`
 
 How to use:
 -----------
