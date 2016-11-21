@@ -41,21 +41,24 @@ bool HTMLParser::parse() {
 
 	std::string object, data, parentName;
 
-	std::shared_ptr<HTMLObject> html, htmlItem, tree;
+	std::shared_ptr<HTMLObject> html, tree, top;
 
-	html = std::make_shared<HTMLObject>();			
-	htmlItem = std::make_shared<HTMLObject>();
+	html = std::make_shared<HTMLObject>();
+	html->setType("html");
+
+	top = std::make_shared<HTMLObject>();
+	top->setType("top");
 
 	tree = html;
+	
+	tree->setParent(top);
 
-	html->setType("html");
-	html->setParent(html);
-
-	std::stack<HTMLObject> closingTags;
+	std::stack<std::shared_ptr<HTMLObject>> closingTags;
 
 	while (file.get(input)) {
 	
-	HTMLObject parent;
+		std::shared_ptr<HTMLObject> parent(new HTMLObject);	
+		std::shared_ptr<HTMLObject> htmlItem(new HTMLObject);
 
 		//if (closingTags.size() > 0)
 			//std::cout << "AAATOP: " << closingTags.top().getType() << "\nSIZE: " << closingTags.size() << std::endl;
@@ -96,10 +99,9 @@ bool HTMLParser::parse() {
 
 					int pos = file.tellg();
 
-					if (input == closingTags.top().getType()[0]) {
+					if (input == closingTags.top()->getType()[0]) {
 
 						tagEnded = 1;
-						std::cout << "Tag ended\n";
 						closingTags.pop();
 
 					}
@@ -108,7 +110,7 @@ bool HTMLParser::parse() {
 
 						file.seekg(pos);
 						std::cout << "not found\n";
-						std::cout << closingTags.top().getParent()->getType()[0] << "\n" << input << "\n"; 
+						std::cout << closingTags.top()->getParent()->getType()[0] << "\n" << input << "\n"; 
 
 					}
 
@@ -124,40 +126,41 @@ bool HTMLParser::parse() {
 
 			if (!tagEnded) {
 
-				htmlItem->setType(object);
+				htmlItem->setType(object);	
 
 				if (closingTags.size() > 1) {
 
-					parent.setType(closingTags.top().getType());
-					parent.setParent(closingTags.top().getParent());
+					parent->setType(closingTags.top()->getType());
+					parent->setParent(closingTags.top()->getParent());
 
 				}
 
 				else {
 
-					parent.setType(html->getType());
-					parent.setParent(html);
+					parent->setType(html->getType());
+					parent->setParent(html);
 
 				}
 
-				htmlItem->setParent(std::make_shared<HTMLObject>(parent));
+				htmlItem->setParent(parent);
+				closingTags.push(htmlItem);
+				htmlItem->getParent()->addChild(htmlItem);	
 
-				std::cout << "new HTMLObject called " << htmlItem->getType() << " with parent " << htmlItem->getParent()->getType() << std::endl;
-				closingTags.push(*htmlItem);
-				htmlItem->getParent()->addChild(*htmlItem);	
+				if (htmlItem->getParent()->getType() == "html")
+					tree->addChild(htmlItem);	
 
-				if (htmlItem->getParent()->getType() == "html")	
-					tree->addChild(*htmlItem);	
+				else if (htmlItem->getType() != "html") {
 
-				else
-					tree->findChild(*htmlItem->getParent()).addChild(*htmlItem);
+					std::cout << "NEW HTML CALLED " << htmlItem->getType() << ", LOOKING FOR PARENT " << htmlItem->getParent()->getType() << std::endl;
+					tree->findChild(htmlItem->getParent())->addChild(htmlItem);
 
+				}
 
 			}
 
 			else if (tagEnded && object == "html") {
 
-				//tree->list();
+				tree->list();
 				return 1; 
 
 			}
@@ -212,7 +215,7 @@ void HTMLObject::addAttribute(std::string attribute, std::string val) {
 
 }
 
-void HTMLObject::addChild(HTMLObject child) {
+void HTMLObject::addChild(std::shared_ptr<HTMLObject> child) {
 
 	children.push_back(child);
 
@@ -230,36 +233,52 @@ std::shared_ptr<HTMLObject> HTMLObject::getParent() {
 
 }
 
+int tabCount = 0;
+
 void HTMLObject::list() {
 
-	std::cout << this->type << "\n";
+	tabCount++;
 
-	for (HTMLObject o : children) {
+	std::cout << "\n";
 
-		std::cout << o.getType() << std::endl;
-		o.list();
+	for (std::shared_ptr<HTMLObject> o : children) {
+
+		for (int i = 0; i < tabCount; i++)
+		std::cout << "    ";
+
+		std::cout << o->getType();
+		std::cout << "\n";
+		o->list();
 
 	}
+
+	tabCount--;
 
 }
 
-HTMLObject HTMLObject::findChild(HTMLObject child) {
+std::shared_ptr<HTMLObject> HTMLObject::findChild(std::shared_ptr<HTMLObject> child) {
 
-	for (HTMLObject o : children) {
+	std::cout << "I'm looking for " << child->getType() << " inside " << this->type << std::endl;
 
-		if (o.getType() == child.getType()) {
+	std::shared_ptr<HTMLObject> found;
 
-			std::cout << "found " << o.getType() << std::endl;
-			return o;
+	for (std::shared_ptr<HTMLObject> o : children) {
+
+		std::cout << "looking...\n";
+
+		if (o->getType() == child->getType()) {
+
+			std::cout << "found\n";
+			found = o;
+			return found;
 
 		}
 
+		found = o->findChild(child);
+
 	}
 
-	HTMLObject error;
-	error.setType("error");
-
-	return error;
+	return found;
 
 }
 

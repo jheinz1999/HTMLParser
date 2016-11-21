@@ -24,17 +24,17 @@ class HTMLObject {
 		void setType(std::string name);
 		void setContent(std::string content);
 		void addAttribute(std::string attribute, std::string val);
-		void addChild(HTMLObject child);
+		void addChild(std::shared_ptr<HTMLObject> child);
 		void list();
 		void setParent(std::shared_ptr<HTMLObject> parent);
 		std::shared_ptr<HTMLObject> getParent();
-		HTMLObject findChild(HTMLObject child);
+		std::shared_ptr<HTMLObject> findChild(std::shared_ptr<HTMLObject> child);
 
 	private:
 
 		std::map<std::string, std::string> attributes;
 		std::string content, type;
-		std::vector<HTMLObject> children;
+		std::vector<std::shared_ptr<HTMLObject>> children;
 
 		std::shared_ptr<HTMLObject> parent;
 
