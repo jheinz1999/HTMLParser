@@ -25,10 +25,15 @@ class HTMLObject {
 		void setContent(std::string content);
 		void addAttribute(std::string attribute, std::string val);
 		void addChild(std::shared_ptr<HTMLObject> child);
-		void list();
+		void list(int tabCount);
 		void setParent(std::shared_ptr<HTMLObject> parent);
 		std::shared_ptr<HTMLObject> getParent();
-		std::shared_ptr<HTMLObject> findChild(std::shared_ptr<HTMLObject> child);
+		std::shared_ptr<HTMLObject> findChild(std::shared_ptr<HTMLObject> child, int numFound, int numLookingFor);
+		bool tagExists(std::string tag);
+		void addTag(std::string tag);
+		void incrementTagCount(std::string tag);
+		int getTagCount(std::string tag);
+		std::map<std::string, int> numTags;
 
 	private:
 
@@ -53,6 +58,8 @@ class HTMLParser {
 
 		std::ifstream file;
 		std::string filePath;
+
+		std::shared_ptr<HTMLObject> tree;
 
 		void parseHTML();
 

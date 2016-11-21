@@ -41,7 +41,7 @@ bool HTMLParser::parse() {
 
 	std::string object, data, parentName;
 
-	std::shared_ptr<HTMLObject> html, tree, top;
+	std::shared_ptr<HTMLObject> html, top;
 
 	html = std::make_shared<HTMLObject>();
 	html->setType("html");
@@ -144,15 +144,14 @@ bool HTMLParser::parse() {
 
 				htmlItem->setParent(parent);
 				closingTags.push(htmlItem);
-				htmlItem->getParent()->addChild(htmlItem);	
 
 				if (htmlItem->getParent()->getType() == "html")
 					tree->addChild(htmlItem);	
 
 				else if (htmlItem->getType() != "html") {
 
-					std::cout << "NEW HTML CALLED " << htmlItem->getType() << ", LOOKING FOR PARENT " << htmlItem->getParent()->getType() << std::endl;
-					tree->findChild(htmlItem->getParent())->addChild(htmlItem);
+					//std::cout << "NEW HTML CALLED " << htmlItem->getType() << ", LOOKING FOR PARENT " << htmlItem->getParent()->getType() << std::endl;
+					tree->findChild(htmlItem->getParent(), 0, top->getTagCount(htmlItem->getParent()->getType()))->addChild(htmlItem);
 
 				}
 
@@ -160,7 +159,23 @@ bool HTMLParser::parse() {
 
 			else if (tagEnded && object == "html") {
 
-				tree->list();
+				tree->list(0);
+				
+				std::shared_ptr<HTMLObject> top = tree->getParent();
+
+				while (top->getType() != "top")
+					top = top->getParent();
+
+				std::map<std::string, int>::iterator it = top->numTags.begin();
+
+				while (it != top->numTags.end()) {
+
+					std::cout << "Number of " << it->first << ": " << top->numTags[it->first] << "\n";
+
+				it++;
+
+				}
+
 				return 1; 
 
 			}
@@ -218,6 +233,26 @@ void HTMLObject::addAttribute(std::string attribute, std::string val) {
 void HTMLObject::addChild(std::shared_ptr<HTMLObject> child) {
 
 	children.push_back(child);
+	
+	std::shared_ptr<HTMLObject> top = child->getParent();
+
+	while (top->getType() != "top")
+		top = top->getParent();
+
+
+	if (top->tagExists(child->getType())) {
+
+		std::cout << "incrementing tag of type " << child->getType() << "\n";
+		top->incrementTagCount(child->getType());
+
+	}
+
+	else {
+
+		std::cout << "first tag of type " << child->getType() << "\n";
+		top->addTag(child->getType());
+
+	}
 
 }
 
@@ -233,9 +268,7 @@ std::shared_ptr<HTMLObject> HTMLObject::getParent() {
 
 }
 
-int tabCount = 0;
-
-void HTMLObject::list() {
+void HTMLObject::list(int tabCount) {
 
 	tabCount++;
 
@@ -248,7 +281,7 @@ void HTMLObject::list() {
 
 		std::cout << o->getType();
 		std::cout << "\n";
-		o->list();
+		o->list(tabCount);
 
 	}
 
@@ -256,7 +289,7 @@ void HTMLObject::list() {
 
 }
 
-std::shared_ptr<HTMLObject> HTMLObject::findChild(std::shared_ptr<HTMLObject> child) {
+std::shared_ptr<HTMLObject> HTMLObject::findChild(std::shared_ptr<HTMLObject> child, int numFound, int numLookingFor) {
 
 	std::cout << "I'm looking for " << child->getType() << " inside " << this->type << std::endl;
 
@@ -265,20 +298,58 @@ std::shared_ptr<HTMLObject> HTMLObject::findChild(std::shared_ptr<HTMLObject> ch
 	for (std::shared_ptr<HTMLObject> o : children) {
 
 		std::cout << "looking...\n";
+		std::cout << "found is " << numFound << std::endl;
 
 		if (o->getType() == child->getType()) {
 
-			std::cout << "found\n";
-			found = o;
-			return found;
+			numFound++;
+			std::cout << "found # " << numFound << "/" << numLookingFor << std::endl;
+			if (numFound == numLookingFor) {
+				found = o;
+				return found;
+			}
 
 		}
 
-		found = o->findChild(child);
+		std::cout << "found is " << numFound << std::endl;
+
+		found = o->findChild(child, numFound, numLookingFor);
 
 	}
 
 	return found;
+
+}
+
+bool HTMLObject::tagExists(std::string tag) {
+
+	std::map<std::string, int>::iterator it;
+
+	it = numTags.find(tag);
+
+	if (it != numTags.end())
+		return true;
+
+	else
+		return false;	
+
+}
+
+void HTMLObject::addTag(std::string tag) {
+
+	numTags.insert(std::pair<std::string, int>(tag, 1));
+
+}
+
+void HTMLObject::incrementTagCount(std::string tag) {
+
+	numTags[tag]++;
+
+}
+
+int HTMLObject::getTagCount(std::string tag) {
+
+	return numTags[tag];
 
 }
 
