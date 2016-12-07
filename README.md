@@ -13,10 +13,10 @@ How to use:
 
 In its current stage, this program will only analyze your HTML file. It will print out a list of the tags in the order that they appear, and will indent them to exhibit its parent/child tags. In addition, the program will print out how many of each tag are in the HTML file. This program is in a pre-alpha stage, and its functionality is extremely limited. 
 
-Latest update: 11/21/16
+Latest update: 12/6/16
 ------------------------
 
-- Refined tag organization algorithm; HTMLParser now puts tags in the right place
+- Added code to ignore comments in HTML code
 
 Known Bugs:
 ------------

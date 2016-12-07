@@ -37,7 +37,7 @@ bool HTMLParser::parse() {
 
 	char input;
 
-	bool tagEnded = 0, firstPass = 1;
+	bool tagEnded = 0, firstPass = 1, comment = 0;
 
 	std::string object, data, parentName;
 
@@ -84,8 +84,13 @@ bool HTMLParser::parse() {
 			object = std::string();
 
 			while (1) {
+				
+				if (comment)
+					comment = 0;
 
 				file.get(input);
+				
+				int pos = file.tellg();
 
 				if (input == '>') {
 				
@@ -96,8 +101,6 @@ bool HTMLParser::parse() {
 				if (input == '/') {
 
 					file.get(input);
-
-					int pos = file.tellg();
 
 					if (input == closingTags.top()->getType()[0]) {
 
@@ -115,9 +118,46 @@ bool HTMLParser::parse() {
 					}
 
 				}
+				
+				if (input == '!') {
+					
+					std::cout << "FOUND A COMMENT\n";
+					
+					file.get(input);
+					
+					if (input == '-') {
+						
+						file.get(input);
+						
+						std::cout << "dash\n";
+						
+						if (input == '-') {
+							
+							std::cout << "dash2\n\n";
+							
+							file.get(input);
+								
+							while (input != '<') {
+								
+								file.get(input);
+								
+							}
+							
+							comment = 1;
+							tagEnded = 0;
+							pos = file.tellg();
 
-				object += input;
+						}
+						
+					}
+					
+					file.seekg(pos);
+					
+				}
 
+				if (!comment)
+					object += input;
+	
 			}
 
 			std::locale loc;
@@ -291,19 +331,19 @@ void HTMLObject::list(int tabCount) {
 
 std::shared_ptr<HTMLObject> HTMLObject::findChild(std::shared_ptr<HTMLObject> child, int numFound, int numLookingFor) {
 
-	std::cout << "I'm looking for " << child->getType() << " inside " << this->type << std::endl;
+	//std::cout << "I'm looking for " << child->getType() << " inside " << this->type << std::endl;
 
 	std::shared_ptr<HTMLObject> found;
 
 	for (std::shared_ptr<HTMLObject> o : children) {
 
-		std::cout << "looking...\n";
-		std::cout << "found is " << numFound << std::endl;
+		//std::cout << "looking...\n";
+		//std::cout << "found is " << numFound << std::endl;
 
 		if (o->getType() == child->getType()) {
 
 			numFound++;
-			std::cout << "found # " << numFound << "/" << numLookingFor << std::endl;
+			//std::cout << "found # " << numFound << "/" << numLookingFor << std::endl;
 			if (numFound == numLookingFor) {
 				found = o;
 				return found;
@@ -311,7 +351,7 @@ std::shared_ptr<HTMLObject> HTMLObject::findChild(std::shared_ptr<HTMLObject> ch
 
 		}
 
-		std::cout << "found is " << numFound << std::endl;
+		//std::cout << "found is " << numFound << std::endl;
 
 		found = o->findChild(child, numFound, numLookingFor);
 
