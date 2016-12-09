@@ -16,7 +16,7 @@ In its current stage, this program will only analyze your HTML file. It will pri
 Latest update: 12/9/16
 ------------------------
 
-- More refining of the code. Now accepts any valid xml, and properly names the tag, skipping over attributes.
+- Fixed attribute bug
 
 Known Bugs:
 ------------
@@ -40,8 +40,6 @@ Example of an error-causing HTML file:
 	</body>
 
 </html>
-
-- For some reason, you can only have one attribute per tag. If there's more, the program will halt, but it won't crash.
 
 To be implemented:
 -------------------

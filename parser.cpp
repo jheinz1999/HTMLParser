@@ -166,7 +166,7 @@ bool HTMLParser::parse() {
 					
 					attrCount++;
 					
-					std::string attrName;
+					std::string attrName, attrContent;
 					
 					while (input != '=') {
 						
@@ -174,6 +174,25 @@ bool HTMLParser::parse() {
 						attrName += input;
 						
 					}
+					
+					attrName = attrName.substr(0, attrName.length() - 1);
+					
+					int quoteCount = 0;
+					
+					while (quoteCount < 2) {
+						
+						file.get(input);
+						
+						if (input == '\"')
+							quoteCount++;
+							
+						else
+							attrContent += input;
+						
+					}
+					
+					std::cout << "attribute: " << attrName << std::endl;
+					std::cout << "content: " << attrContent << std::endl;
 					
 				}
 
