@@ -13,10 +13,10 @@ How to use:
 
 In its current stage, this program will only analyze your HTML file. It will print out a list of the tags in the order that they appear, and will indent them to exhibit its parent/child tags. In addition, the program will print out how many of each tag are in the HTML file. This program is in a pre-alpha stage, and its functionality is extremely limited. 
 
-Latest update: 12/6/16
+Latest update: 12/9/16
 ------------------------
 
-- Added code to ignore comments in HTML code
+- More refining of the code. Now accepts any valid xml, and properly names the tag, skipping over attributes.
 
 Known Bugs:
 ------------
@@ -40,5 +40,11 @@ Example of an error-causing HTML file:
 	</body>
 
 </html>
+
+To be implemented:
+-------------------
+
+- Attribute lists
+- Get all elements of a type
 
 The program will work if you take out the i tag. I am currently working to fix this issue.

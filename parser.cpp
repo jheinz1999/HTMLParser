@@ -38,8 +38,10 @@ bool HTMLParser::parse() {
 	char input;
 
 	bool tagEnded = 0, firstPass = 1, comment = 0;
+	
+	int attrCount = 0;
 
-	std::string object, data, parentName;
+	std::string object, data, parentName, objName;
 
 	std::shared_ptr<HTMLObject> html, top;
 
@@ -57,8 +59,8 @@ bool HTMLParser::parse() {
 
 	while (file.get(input)) {
 	
-		std::shared_ptr<HTMLObject> parent(new HTMLObject);	
-		std::shared_ptr<HTMLObject> htmlItem(new HTMLObject);
+		std::shared_ptr<HTMLObject> parent(new HTMLObject());	
+		std::shared_ptr<HTMLObject> htmlItem(new HTMLObject());
 
 		//if (closingTags.size() > 0)
 			//std::cout << "AAATOP: " << closingTags.top().getType() << "\nSIZE: " << closingTags.size() << std::endl;
@@ -94,6 +96,10 @@ bool HTMLParser::parse() {
 
 				if (input == '>') {
 				
+					if (attrCount == 0)
+						objName = object;
+					
+					attrCount = 0;
 					break;
 
 				}
@@ -121,19 +127,13 @@ bool HTMLParser::parse() {
 				
 				if (input == '!') {
 					
-					std::cout << "FOUND A COMMENT\n";
-					
 					file.get(input);
 					
 					if (input == '-') {
 						
 						file.get(input);
 						
-						std::cout << "dash\n";
-						
 						if (input == '-') {
-							
-							std::cout << "dash2\n\n";
 							
 							file.get(input);
 								
@@ -154,6 +154,28 @@ bool HTMLParser::parse() {
 					file.seekg(pos);
 					
 				}
+				
+				if (input == ' ') {
+					
+					if (attrCount == 0) {
+						
+						objName = object;
+						object = "";
+						
+					}
+					
+					attrCount++;
+					
+					std::string attrName;
+					
+					while (input != '=') {
+						
+						file.get(input);
+						attrName += input;
+						
+					}
+					
+				}
 
 				if (!comment)
 					object += input;
@@ -166,12 +188,11 @@ bool HTMLParser::parse() {
 
 			if (!tagEnded) {
 
-				htmlItem->setType(object);	
+				htmlItem->setType(objName);	
 
 				if (closingTags.size() > 1) {
-
-					parent->setType(closingTags.top()->getType());
-					parent->setParent(closingTags.top()->getParent());
+					
+					parent.reset(new HTMLObject(closingTags.top()));
 
 				}
 
@@ -397,4 +418,32 @@ void HTMLParser::list() {
 
 	
 
+}
+
+std::map<std::string, std::string> HTMLObject::getAllAttributes() {
+	
+	return this->attributes;
+	
+}
+
+std::vector<std::shared_ptr<HTMLObject>> HTMLObject::getAllChildren() {
+	
+	return this->children;
+	
+}
+
+HTMLObject::HTMLObject() {
+	
+	
+	
+}
+
+HTMLObject::HTMLObject(std::shared_ptr<HTMLObject> ptr) {
+	
+	this->setParent(ptr->getParent());
+	this->attributes = ptr->getAllAttributes();
+	this->type = ptr->getType();
+	this->children = ptr->getAllChildren();
+	this->content = ptr->getContent();
+	
 }

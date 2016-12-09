@@ -17,6 +17,9 @@ class HTMLObject;
 class HTMLObject {
 
 	public:
+	
+		HTMLObject();
+		HTMLObject(std::shared_ptr<HTMLObject> ptr);
 
 	    std::string getContent();
 		std::string getType();
@@ -34,6 +37,8 @@ class HTMLObject {
 		void incrementTagCount(std::string tag);
 		int getTagCount(std::string tag);
 		std::map<std::string, int> numTags;
+		std::map<std::string, std::string> getAllAttributes();
+		std::vector<std::shared_ptr<HTMLObject>> getAllChildren();
 
 	private:
 
