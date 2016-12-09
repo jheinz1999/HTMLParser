@@ -41,6 +41,8 @@ Example of an error-causing HTML file:
 
 </html>
 
+- For some reason, you can only have one attribute per tag. If there's more, the program will halt, but it won't crash.
+
 To be implemented:
 -------------------
 
